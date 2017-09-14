@@ -1,0 +1,16 @@
+ICA2
+
+Kevin Queenan
+Logan Dorsey
+Kellen Schmidt
+Austin Chen
+
+For thought:
+
+FFT longer? Why?
+
+Yes, our program would still function. Because the frequency resolution does not depend on the length of the FFT, but rather the length of the total sampling time.
+
+Is pausing "better" than deallocating...? Why or why not?
+
+We think that pausing is superior provided you return back to the audioManager singletone at some point in the program's life cycle. It does not have to take the time and CPU cycles to deallocate, reallocate, and all of the processes involved in connecting the microphone, etc. In a modern iOS setting, this should be possible insofar as hardware resource management is concerned. Further, our team is under the impression that singletons (audioManager) are intentionally, by their inherent properties, created once and should most certainly exist for the LIFETIME of the domain -- recreating a singleton is not best practice and by definition of the singleton pattern would mean it is no longer truly a singleton. For these aforementioned reasons, we think that it is best to pause and resume as necessariy.
