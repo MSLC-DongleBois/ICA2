@@ -11,6 +11,7 @@
 #import "CircularBuffer.h"
 #import "SMUGraphHelper.h"
 #import "FFTHelper.h"
+#import "AudioFileReader.h"
 
 #define BUFFER_SIZE 2048
 
@@ -19,6 +20,7 @@
 @property (strong, nonatomic) CircularBuffer *buffer;
 @property (strong, nonatomic) SMUGraphHelper *graphHelper;
 @property (strong, nonatomic) FFTHelper *fftHelper;
+@property (strong, nonatomic) AudioFileReader *fileReader;
 @end
 
 
@@ -59,6 +61,19 @@
     return _fftHelper;
 }
 
+-(AudioFileReader*) fileReader {
+    if(!_fileReader) {
+        NSURL *inputFileURL = [[NSBundle mainBundle] URLForResource:@"satisfaction" withExtension:@"mp3"];
+        _fileReader = [[AudioFileReader alloc]
+                       initWithAudioFileURL: inputFileURL
+                       samplingRate:self.audioManager.samplingRate
+                       numChannels:self.audioManager.numOutputChannels];
+        
+    }
+    
+    return _fileReader;
+}
+
 
 #pragma mark VC Life Cycle
 - (void)viewDidLoad {
@@ -74,6 +89,18 @@
     }];
     
     [self.audioManager play];
+    
+    //////////////////////////////////////////////////
+    
+    [self.fileReader play];
+    self.fileReader.currentTime = 0.0;
+    
+    //__block ViewController * __weak weakSelf = self; // don't increment ARC'
+    [self.audioManager setOutputBlock:^(float *data, UInt32 numFrames, UInt32 numChannels)
+     {
+         [weakSelf.fileReader retrieveFreshAudio:data numFrames:numFrames numChannels:numChannels];
+         
+     }];
 }
 
 #pragma mark GLK Inherited Functions
