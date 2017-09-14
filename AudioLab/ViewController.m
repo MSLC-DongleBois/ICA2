@@ -112,6 +112,15 @@
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect {
     [self.graphHelper draw]; // draw the graph
 }
+- (IBAction)goBack:(id)sender {
+    
+        [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (void)viewWillDisappear:(BOOL)animated
+{
+    [self.audioManager pause];
+}
 
 
 @end
