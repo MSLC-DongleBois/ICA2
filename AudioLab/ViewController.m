@@ -44,7 +44,7 @@
     if(!_graphHelper){
         _graphHelper = [[SMUGraphHelper alloc]initWithController:self
                                         preferredFramesPerSecond:15
-                                                       numGraphs:2
+                                                       numGraphs:3
                                                        plotStyle:PlotStyleSeparated
                                                maxPointsPerGraph:BUFFER_SIZE];
     }
@@ -65,7 +65,7 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
     
-   
+    
     [self.graphHelper setScreenBoundsBottomHalf];
     
     __block ViewController * __weak  weakSelf = self;
@@ -84,6 +84,7 @@
     // get audio stream data
     float* arrayData = malloc(sizeof(float)*BUFFER_SIZE);
     float* fftMagnitude = malloc(sizeof(float)*BUFFER_SIZE/2);
+    float* fftTwenty = malloc(sizeof(float)*20);
     
     [self.buffer fetchFreshData:arrayData withNumSamples:BUFFER_SIZE];
     
@@ -103,15 +104,32 @@
                  withNormalization:64.0
                      withZeroValue:-60];
     
+    float maxVal = 0.0;
+    int batchLength = BUFFER_SIZE/2/20;
+    
+    for(int i=0; i<20; ++i) {
+        vDSP_maxv(&fftMagnitude[i*batchLength], 1, &maxVal, batchLength);
+        fftTwenty[i] = maxVal;
+    }
+    
+    // NEW GRAPH FOR ICA 2 PART 2
+    [self.graphHelper setGraphData:fftTwenty
+                    withDataLength:20
+                     forGraphIndex:2
+                 withNormalization:64.0
+                     withZeroValue:-60];
+    
     [self.graphHelper update]; // update the graph
     free(arrayData);
     free(fftMagnitude);
+    free(fftTwenty);
 }
 
 //  override the GLKView draw function, from OpenGLES
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect {
     [self.graphHelper draw]; // draw the graph
 }
+
 - (IBAction)goBack:(id)sender {
     
         [self dismissViewControllerAnimated:YES completion:nil];
