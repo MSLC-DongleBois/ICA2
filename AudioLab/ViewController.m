@@ -81,26 +81,36 @@
     // Do any additional setup after loading the view, typically from a nib.
     
     
+    
     [self.graphHelper setScreenBoundsBottomHalf];
     
     __block ViewController * __weak  weakSelf = self;
     [self.audioManager setInputBlock:^(float *data, UInt32 numFrames, UInt32 numChannels){
-        [weakSelf.buffer addNewFloatData:data withNumSamples:numFrames];
+        //[weakSelf.buffer addNewFloatData:data withNumSamples:numFrames];
     }];
     
     [self.audioManager play];
     
     //////////////////////////////////////////////////
     
+    
     [self.fileReader play];
     self.fileReader.currentTime = 0.0;
+    
     
     //__block ViewController * __weak weakSelf = self; // don't increment ARC'
     [self.audioManager setOutputBlock:^(float *data, UInt32 numFrames, UInt32 numChannels)
      {
          [weakSelf.fileReader retrieveFreshAudio:data numFrames:numFrames numChannels:numChannels];
+        
+//         float zero = 0.0;
+         
+//         vDSP_vsadd(data, numChannels, &zero, leftSampleData, 1, numFrames);
+         
+         [weakSelf.buffer addNewFloatData:data withNumSamples:numFrames];
          
      }];
+    
 }
 
 #pragma mark GLK Inherited Functions
@@ -109,9 +119,12 @@
     // just plot the audio stream
     
     // get audio stream data
+    float* leftSampleData = malloc(sizeof(float)*BUFFER_SIZE/2);
     float* arrayData = malloc(sizeof(float)*BUFFER_SIZE);
     float* fftMagnitude = malloc(sizeof(float)*BUFFER_SIZE/2);
     float* fftTwenty = malloc(sizeof(float)*20);
+    
+    
     
     [self.buffer fetchFreshData:arrayData withNumSamples:BUFFER_SIZE];
     
@@ -150,6 +163,7 @@
     free(arrayData);
     free(fftMagnitude);
     free(fftTwenty);
+    free(leftSampleData);
 }
 
 //  override the GLKView draw function, from OpenGLES
